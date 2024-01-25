@@ -19,4 +19,7 @@
 
       <!-- Start auto node -->
   <node pkg="teamwork" type="auto.py" name="auto_node" output="screen" />
+
+        <!-- Start router node -->
+  <node pkg="teamwork" type="router.py" name="router_node" output="screen" />
 </launch>

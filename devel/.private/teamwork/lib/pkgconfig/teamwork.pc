@@ -3,6 +3,6 @@ prefix=/home/jetson/catkin_ws/devel/.private/teamwork
 Name: teamwork
 Description: Description of teamwork
 Version: 0.0.0
-Cflags: 
+Cflags: -I/home/jetson/catkin_ws/devel/.private/teamwork/include
 Libs: -L${prefix}/lib 
-Requires: 
+Requires: rospy roscpp roscpp std_msgs message_runtime
