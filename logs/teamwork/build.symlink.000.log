@@ -1,0 +1,3 @@
+Symlinking /home/jetson/catkin_ws/devel/lib/pkgconfig/teamwork.pc
+Symlinking /home/jetson/catkin_ws/devel/share/teamwork/cmake/teamworkConfig.cmake
+Symlinking /home/jetson/catkin_ws/devel/share/teamwork/cmake/teamworkConfig-version.cmake

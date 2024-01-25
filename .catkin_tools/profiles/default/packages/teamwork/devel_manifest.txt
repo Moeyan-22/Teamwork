@@ -1,0 +1,5 @@
+teamwork
+/home/jetson/catkin_ws/devel/.private/teamwork/cmake.lock /home/jetson/catkin_ws/devel/./cmake.lock
+/home/jetson/catkin_ws/devel/.private/teamwork/lib/pkgconfig/teamwork.pc /home/jetson/catkin_ws/devel/lib/pkgconfig/teamwork.pc
+/home/jetson/catkin_ws/devel/.private/teamwork/share/teamwork/cmake/teamworkConfig.cmake /home/jetson/catkin_ws/devel/share/teamwork/cmake/teamworkConfig.cmake
+/home/jetson/catkin_ws/devel/.private/teamwork/share/teamwork/cmake/teamworkConfig-version.cmake /home/jetson/catkin_ws/devel/share/teamwork/cmake/teamworkConfig-version.cmake

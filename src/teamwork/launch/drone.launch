@@ -1,0 +1,22 @@
+<launch>
+  <!-- Start roscore -->
+  <node pkg="roscore" type="roscore" name="roscore" output="screen"/>
+
+  <!-- Start mavros -->
+  <include file="$(find mavros)/launch/px4.launch" />
+
+  <!-- Wait for mavros to start -->
+  <node pkg="rostopic" type="rostopic" name="wait_for_mavros" args="echo -n /mavros/state -w 5" output="screen" />
+
+  <!-- Start main_controller node -->
+  <node pkg="teamwork" type="main_controller.py" name="main_controller_node" output="screen" />
+
+   <!-- Start actuator_control node -->
+  <node pkg="teamwork" type="actuator_control.py" name="actuator_control_node" output="screen" />
+
+    <!-- Start camera node -->
+  <node pkg="teamwork" type="camera.py" name="camera_node" output="screen" />
+
+      <!-- Start auto node -->
+  <node pkg="teamwork" type="auto.py" name="auto_node" output="screen" />
+</launch>
