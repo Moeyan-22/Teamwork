@@ -6,6 +6,7 @@ from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest
 import threading
 from std_msgs.msg import UInt8
+import subprocess 
 
 class AutoController:
 
@@ -20,6 +21,28 @@ class AutoController:
         self.shutdown_flag = False  
         self.mode = 1
         self.started = False
+        self.drone_x = 0
+        self.drone_y = 0
+        self.drone_z = 0
+        self.bag_process = None  
+
+    def local_pose_callback(self, data):
+        self.drone_x = data.pose.position.x
+        self.drone_y = data.pose.position.y
+        self.drone_z = data.pose.position.z
+
+    def start_rosbag_recording(self, topics):
+        bag_file = "/home/jetson/Desktop/teamwork.bag"
+        rosbag_cmd = ["rosbag", "record", "-O", bag_file] + topics
+        self.bag_process = subprocess.Popen(rosbag_cmd)
+        rospy.loginfo("Recording rosbag...")
+
+    def stop_rosbag_recording(self):
+        if self.bag_process is not None:
+            self.bag_process.terminate()
+            rospy.loginfo("Recording stopped.")
+        else:
+            rospy.logwarn("No rosbag process to terminate.")
 
     def mode_callback(self, data):
         self.mode = data.data
@@ -32,14 +55,13 @@ class AutoController:
 
         while not rospy.is_shutdown() and not self.shutdown_flag:
             elapsed_time = rospy.Time.now() - start_time
-            rospy.loginfo("Timer Started")
-
+            #rospy.loginfo(f"Current Pose - X: {self.drone_x}, Y: {self.drone_y}, Z: {self.drone_z}")
             if elapsed_time < rospy.Duration(20.0):
                 # Send setpoints with mode 1
-                self.pose.pose.position.x = 0
+                self.pose.pose.position.x = self.current_x
             else:
                 # Change x value to 2 and continue sending setpoints with mode 3
-                self.pose.pose.position.x = 2
+                self.pose.pose.position.x = self.current_x + 2
 
             # Send setpoints
             self.local_pos_pub.publish(self.pose)
@@ -73,6 +95,7 @@ class AutoController:
                 except rospy.ServiceException as e:
                     rospy.logerr(f"Service call to set_mode failed: {e}")
 
+
     def main(self):
         rospy.init_node("offb_node_py")
 
@@ -80,6 +103,8 @@ class AutoController:
         rospy.Subscriber("/mavros/rc/mode", UInt8, self.mode_callback)
 
         state_sub = rospy.Subscriber("mavros/state", State, callback=self.state_callback)
+
+        rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.local_pose_callback)
 
         self.local_pos_pub = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=10)
 
@@ -100,9 +125,20 @@ class AutoController:
 
         while not rospy.is_shutdown():
             if self.started == False and self.mode == 3:
-                    self.pose.pose.position.x = 0
-                    self.pose.pose.position.y = 0
-                    self.pose.pose.position.z = 2
+                    
+                    self.start_rosbag_recording(["/mavros/local_position/pose", "/mavros/setpoint_position/local"])
+                    self.started = True
+                    
+                    self.current_x = self.drone_x
+                    self.current_y = self.drone_y
+                    self.current_z = self.drone_z
+
+                    rospy.loginfo(f"Current Pose - X: {self.current_x}, Y: {self.current_y}, Z: {self.current_z}")
+
+
+                    self.pose.pose.position.x = self.current_x
+                    self.pose.pose.position.y = self.current_y
+                    self.pose.pose.position.z = self.current_z + 2
 
                     # Start a new thread for sending setpoints
                     setpoints_thread.start()
@@ -131,9 +167,14 @@ class AutoController:
                         self.local_pos_pub.publish(self.pose)
 
                         self.rate.sleep()
-                        self.started = True
-            else: 
+
+                        if self.started == True and self.mode != 3: 
+                            self.stop_rosbag_recording()
+                            break
+            else:
                 pass
+
+                
 
         # Graceful shutdown: Wait for the setpoints thread to finish
         self.shutdown_flag = True
@@ -146,3 +187,4 @@ if __name__ == "__main__":
         pass
     except Exception as e:
         rospy.logerr("Error in main: {}".format(str(e)))
+
